@@ -48,9 +48,9 @@ namespace ToDo.Poc.Crud.Function
 
             await client.ReplaceDocumentAsync(document);
 
-            Todo todo2 = (dynamic)document;
+            Todo todoUpdated = (dynamic)document;
 
-            return new OkObjectResult(todo2);
+            return new OkObjectResult(todoUpdated);
         }
     }
 }
