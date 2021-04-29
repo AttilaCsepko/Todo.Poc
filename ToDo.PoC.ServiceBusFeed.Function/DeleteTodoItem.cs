@@ -33,9 +33,9 @@ namespace ToDo.PoC.ServiceBusFeed.Function
 
             string id = req.Query["id"];
 
-            //TODO: ??? 
-            string responseMessage = id;
+            log.LogInformation($"Todo Item delete request has been sent with id '{id}'");
 
+            string responseMessage = id;
             return new OkObjectResult(responseMessage);
         }
     }

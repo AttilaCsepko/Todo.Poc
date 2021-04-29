@@ -21,27 +21,17 @@ namespace ToDo.PoC.ServiceBusFeed.Function
             ILogger log)
         {
             log.LogInformation("SendMessage function requested");
-            //string body = string.Empty;
-            //using (var reader = new StreamReader(req.Body, Encoding.UTF8))
-            //{
-            //    body = await reader.ReadToEndAsync();
-            //    log.LogInformation($"Message body : {body}");
-            //}
-            //log.LogInformation($"SendMessage processed.");
-            //return body;
 
-
-            string todoTitle = req.Query["title"];
+            string taskDescription = req.Query["taskDescription"];
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
-            todoTitle ??= data?.title;
-            if (string.IsNullOrEmpty(todoTitle))
+            taskDescription ??= data?.taskDescription;
+            if (string.IsNullOrEmpty(taskDescription))
                 return new BadRequestResult();
-            
-            string responseMessage = todoTitle;
-            //TODO: format json and add category
 
+            log.LogInformation($"Todo Item create request has been sent with description '{taskDescription}'");
+            string responseMessage = taskDescription;
             return new OkObjectResult(responseMessage);
         }
     }
