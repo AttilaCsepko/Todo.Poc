@@ -1,39 +1,91 @@
-import { useState } from 'react';
-import TodoList from '../todo-list';
-import useGetAllTodosApi from '../../hooks/use-get-all-todos-api'
-import { Button } from 'semantic-ui-react'
-
+import { useEffect } from "react";
+import TodoList from "../todo-list";
+import { Button, Segment } from "semantic-ui-react";
+import { useTodos } from "../../reducers/app-context";
+import TodoAddForm from "../todo-add-form";
+import {ACTION_TYPES} from "../../actions/todo-actions"
 const Todos = () => {
-  const [refresh, setRefresh] = useState(true);
-  
-  const { todos, isLoaded, error } = useGetAllTodosApi(refresh);
+  const axios = require("axios");
+  const [todos, dispatchTodos] = useTodos();
+
+  useEffect(() => {
+    handleRefresh();
+  }, []);
 
   const handleRefresh = () => {
-    setRefresh(!refresh);
-    console.log("refresh")
-  }
+    const fetchUrl = process.env.REACT_APP_TODO_BACKEND_URL + "todo/";
 
-   const handleDelete = (id) => {
-     console.log(`delete ${id}`);
-   };
-   const handleToggleImportant = (id) => {
-     console.log(`toggle important ${id}`);
-   };
-   const handleToggleDone = (id) => { console.log(`toggle done ${id}`);}
+    axios.get(fetchUrl).then((response) => {
+      dispatchTodos({
+        type: ACTION_TYPES.FETCH_ALL,
+        payload: response.data,
+      });
+    });
+  };
+
+  const handleAdd = (taskDescription, importance) => {
+    const createUrl = process.env.REACT_APP_TODO_BACKEND_URL + `todo/`;
+
+    const newTodoItem = { taskDescription, importance };
+
+    axios.post(createUrl, JSON.stringify(newTodoItem)).then((response) => {
+      console.log(response.data);
+      dispatchTodos({
+        type: ACTION_TYPES.CREATE,
+        payload: response.data,
+      });
+    });
+  };
+
+  const handleDelete = (id) => {
+    const deleteUrl = process.env.REACT_APP_TODO_BACKEND_URL + `todo/${id}`;
+
+    axios.delete(deleteUrl).then((response) => {
+      console.log(response.data);
+    });
+
+    dispatchTodos({
+      type: ACTION_TYPES.DELETE,
+      payload: id,
+    });
+  };
+  const handleToggleDone = (id) => {
+    const updateUrl = process.env.REACT_APP_TODO_BACKEND_URL + `todo/${id}`;
+
+    const todoItem = todos.list.filter((el) => el.id === id)[0];
+    todoItem.isCompleted = !todoItem.isCompleted;
+
+    axios.put(updateUrl, JSON.stringify(todoItem)).then((response) => {
+      console.log(response.data);
+    });
+    dispatchTodos({
+      type: ACTION_TYPES.UPDATE,
+      payload: todoItem,
+    });
+  };
+
+  const handleToggleImportant = (id) => {
+    console.log(`NOT IMPLEMENTED ON SERVER-SIDE: toggle important ${id}`);
+  };
 
   return (
     <>
-      <Button color="green" onClick={handleRefresh}>
-        <i className="fa fa-refresh" />
-      </Button>
+      <Segment>
+        <Button color="green" onClick={handleRefresh}>
+          <i className="fa fa-refresh" />
+        </Button>
+      </Segment>
+
+      <Segment>
+        <TodoAddForm onAdded={handleAdd} />
+      </Segment>
       <TodoList
-        todos={error? [] : todos}
-        isLoaded={isLoaded}
+        todos={todos.list}
         onDeleted={handleDelete}
         toggleImportant={handleToggleImportant}
         toggleDone={handleToggleDone}
       />
     </>
   );
-}
+};
 export default Todos;
